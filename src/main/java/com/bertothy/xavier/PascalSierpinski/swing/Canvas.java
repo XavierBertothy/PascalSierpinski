@@ -26,6 +26,7 @@ public class Canvas {
 	public static final Logger log = Logger.getLogger(Canvas.class.getName());
 
 	public static final int commandWidth = 450;
+	
 	public static final int commandHeight = 900;
 	public static final int triangleWidth = 1350;
 	public static final int triangleHeight = 900;
