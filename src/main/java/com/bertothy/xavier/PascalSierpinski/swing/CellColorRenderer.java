@@ -14,7 +14,8 @@ import org.apache.log4j.Logger;
 
 public class CellColorRenderer implements ListCellRenderer<Color> {
 
-	static Logger log = Logger.getLogger(CellColorRenderer.class.getName());
+	public static final Logger LOG = Logger.getLogger(CellColorRenderer.class.getName());
+	
 	protected DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();
 
 	@Override

@@ -1,17 +1,22 @@
 package com.bertothy.xavier.PascalSierpinski.model;
 
 import java.awt.Graphics2D;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
 
 public class Triangle {
-	static Logger log = Logger.getLogger(Triangle.class.getName());
+	static final Logger LOG = Logger.getLogger(Triangle.class.getName());
 	
-	public static final int MINLEVEL = 1;
-	public static final int MAXLEVEL = 200;
+	public static final int MINLEVEL;
+	public static final int MAXLEVEL;
 	
 	private Node root;
 	private int level;
@@ -22,7 +27,23 @@ public class Triangle {
 	private Personnalizer personnalizer;
 	private ArrayList<Choice> list;
 	
+	static{
+		URL propertiesURL = Triangle.class.getClassLoader().getResource( Triangle.class.getSimpleName() + ".properties");
+		Properties defaultProps = new Properties();
+		try (FileInputStream in = new FileInputStream(propertiesURL.getFile())){
+			defaultProps.load(in);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		MINLEVEL = Integer.valueOf(defaultProps.getProperty("MINLEVEL"));
+		MAXLEVEL = Integer.valueOf(defaultProps.getProperty("MAXLEVEL"));
+	}
+	
 	public Triangle(int level){
+		
+		
 		if(level<MINLEVEL || level>MAXLEVEL) 
 			throw new IllegalArgumentException("Level " + level + " not valid. " + MINLEVEL + " <= level <= " + MAXLEVEL + ".");
 		this.level = level;
