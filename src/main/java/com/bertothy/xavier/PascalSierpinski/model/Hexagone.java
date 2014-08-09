@@ -13,10 +13,6 @@ public class Hexagone extends Shape {
 	private double[] xPoints = new double[6];
 
 	public Hexagone() {super();}
-	
-	public Hexagone(int width, int height) {
-		super(width, height);
-	}
 
 	public void setPoint(Point point) {
 		this.point = point;
@@ -51,7 +47,6 @@ public class Hexagone extends Shape {
 		g.draw(polygon);
         if (isNumberVisible)
         	drawText(g, number);
-        log.debug("draw");
 	}
 
 	@Override

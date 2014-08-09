@@ -5,10 +5,6 @@ import java.awt.Graphics2D;
 public class Square extends Shape {
 	
 	public Square(){super();}
-
-	public Square(int width, int height) {
-		super(width, height);
-	}
 	
 //	public Square(Point point, int width, int height, String number, boolean isNumberVisible, Color shapeColor, Color textColor) {
 //		super(point, width, height, number, isNumberVisible,shapeColor, textColor);

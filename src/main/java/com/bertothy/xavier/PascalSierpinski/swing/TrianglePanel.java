@@ -27,7 +27,8 @@ public class TrianglePanel extends JPanel {
 	private ArrayList<Choice> choiceList;
 	private Color shapeColor;
 	private Color textColor;
-	
+	private Shape shape;
+
 	@Override
 	public Dimension getPreferredSize(){
 		return new Dimension(width, height);
@@ -42,9 +43,9 @@ public class TrianglePanel extends JPanel {
 		g2.fillRect(0, 0, width, height);
 
 		int triangleLevel = Integer.parseInt(level);
-		int squareHeight = height / triangleLevel;
-		int squareWidth = squareHeight * 30 / 25;
-		int fontSize = squareHeight * 16 / 50;
+		int shapeHeight = height / triangleLevel;
+		int shapeWidth = shapeHeight * 30 / 25;
+		int fontSize = shapeHeight * 16 / 50;
 		g2.setFont(new Font("default", Font.BOLD, fontSize));
 		Triangle t = new Triangle(triangleLevel);
 		boolean isNumberVisible = (fontSize >= 8 && triangleLevel < 17) ? true
@@ -52,7 +53,8 @@ public class TrianglePanel extends JPanel {
 
 		ArrayList<Choice> list = choiceList;
 
-		Shape shape = new Square(squareWidth, squareHeight);
+		shape.setHeight(shapeHeight);
+		shape.setWidth(shapeWidth);
 		shape.setNumberVisible(isNumberVisible);
 		shape.setShapeColor(shapeColor);
 		shape.setTextColor(textColor);
@@ -131,6 +133,10 @@ public class TrianglePanel extends JPanel {
 				}, list);
 	}
 
+	public Shape getShape() {
+		return shape;
+	}
+	
 	public int getHeight() {
 		return height;
 	}
@@ -159,6 +165,10 @@ public class TrianglePanel extends JPanel {
 		return textColor;
 	}
 
+	public void setShape(Shape shape) {
+		this.shape = shape;
+	}
+	
 	public void setHeight(int height) {
 		this.height = height;
 	}
