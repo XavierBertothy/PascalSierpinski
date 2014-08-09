@@ -89,6 +89,7 @@ public class Canvas {
 		
 		//put here to be visible from all
 		JPanel choicesPanel = new JPanel();
+		System.out.println("");
 		String level = defaultProps.getProperty("LEVEL"); 
 		
 		JFrame frame = new JFrame(LABELS.getString("title"));
