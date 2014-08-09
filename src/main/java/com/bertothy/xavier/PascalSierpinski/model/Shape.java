@@ -15,12 +15,6 @@ public abstract class Shape {
 	public Shape() {
 		super();
 	}
-	
-	public Shape(int width, int height) {
-		super();
-		this.width = width;
-		this.height = height;
-	}
 
 	public void setPoint(Point point) {
 		this.point = point;
@@ -57,7 +51,15 @@ public abstract class Shape {
 	public void setTextColor(Color textColor) {
 		this.textColor = textColor;
 	}
+	
+	public void setHeight(int height) {
+		this.height = height;
+	}
 
+	public void setWidth(int width) {
+		this.width = width;
+	}
+	
 	public abstract void draw(Graphics2D g);
 	
 	public abstract void fill(Graphics2D g);
@@ -76,5 +78,10 @@ public abstract class Shape {
 			x = 10;
 		}
 		g.drawString(number, (int)(point.x+(width*x/50)), (int)(point.y+(height*30/50)));
+	}
+
+	public static Shape loadShape(String string) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

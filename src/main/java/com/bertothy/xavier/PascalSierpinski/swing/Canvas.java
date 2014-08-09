@@ -8,9 +8,18 @@ import java.awt.FlowLayout;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 
 import javax.swing.JButton;
@@ -26,7 +35,10 @@ import org.apache.log4j.Logger;
 
 import com.bertothy.xavier.PascalSierpinski.model.Action;
 import com.bertothy.xavier.PascalSierpinski.model.Choice;
+import com.bertothy.xavier.PascalSierpinski.model.Hexagone;
+import com.bertothy.xavier.PascalSierpinski.model.Shape;
 import com.bertothy.xavier.PascalSierpinski.model.Triangle;
+import com.bertothy.xavier.PascalSierpinski.model.Util;
 
 public class Canvas {
 
@@ -40,6 +52,8 @@ public class Canvas {
 	public static final Color SHAPECOLOR;
 	public static final Color TEXTCOLOR;
 	public static final Color[] COLORARRAY;
+	public static final String[] ACTIONS;
+	public static final ResourceBundle LABELS;
 	public static final CellColorRenderer CELLCOLORRENDERER = new CellColorRenderer();
 	public static final Properties defaultProps = new Properties();
 	
@@ -56,29 +70,28 @@ public class Canvas {
 		COMMANDHEIGHT = Integer.valueOf(defaultProps.getProperty("COMMANDHEIGHT"));
 		TRIANGLEWIDTH = Integer.valueOf(defaultProps.getProperty("TRIANGLEWIDTH"));
 		TRIANGLEHEIGHT = Integer.valueOf(defaultProps.getProperty("TRIANGLEHEIGHT"));
-		BACKGROUNDCOLOR = createColor(defaultProps.getProperty("BACKGROUNDCOLOR"));
-		SHAPECOLOR = createColor(defaultProps.getProperty("SHAPECOLOR"));
-		TEXTCOLOR = createColor(defaultProps.getProperty("TEXTCOLOR"));
-		COLORARRAY = createColorArray(defaultProps.getProperty("COLORARRAY"));
+		BACKGROUNDCOLOR = Util.createColor(defaultProps.getProperty("BACKGROUNDCOLOR"));
+		SHAPECOLOR = Util.createColor(defaultProps.getProperty("SHAPECOLOR"));
+		TEXTCOLOR = Util.createColor(defaultProps.getProperty("TEXTCOLOR"));
+		COLORARRAY = Util.createColorArray(defaultProps.getProperty("COLORARRAY"));
+		ACTIONS = Action.getValues();
 		
-		System.out.println("DARK_GRAY" + Color.DARK_GRAY);
-		System.out.println("RED" + Color.RED);
-		System.out.println("ORANGE" + Color.ORANGE);
-		System.out.println("YELLOW" + Color.YELLOW);
-		System.out.println("GREEN" + Color.GREEN);
-		System.out.println("CYAN" + Color.CYAN);
-		System.out.println("BLUE" + Color.BLUE);
-		System.out.println("PINK" + Color.PINK);
-		System.out.println("MAGENTA" + Color.MAGENTA);
+		LABELS = ResourceBundle.getBundle(defaultProps.getProperty("RESOURCEBUNDLE"),Locale.getDefault());
 	}
 	
-	public static void main(String[] args) throws IOException { 
+	public static void main(String[] args) throws IOException {
 
+		//Action map for Action JComboBox
+		Map<String,String> actionMap = new HashMap<>();
+		for(String action: ACTIONS){
+			actionMap.put(LABELS.getString(action), action);
+		}
+		
 		//put here to be visible from all
 		JPanel choicesPanel = new JPanel();
 		String level = defaultProps.getProperty("LEVEL"); 
 		
-		JFrame frame = new JFrame("Pascal Sierpinski");
+		JFrame frame = new JFrame(LABELS.getString("title"));
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setSize(TRIANGLEWIDTH+COMMANDWIDTH, TRIANGLEHEIGHT);
 		Container container = frame.getContentPane();
@@ -93,10 +106,11 @@ public class Canvas {
 		trianglePanel.setHeight(TRIANGLEHEIGHT);
 		trianglePanel.setLevel(level);
 		trianglePanel.setChoiceList(new ArrayList<Choice>());
+		trianglePanel.setShape((Shape)Util.loadInstance(LABELS.getString("shape")));
 		
 		container.add(trianglePanel, BorderLayout.CENTER);
 		//General panel
-		JLabel levelLabel = new JLabel("Level: ");
+		JLabel levelLabel = new JLabel(LABELS.getString("level"));
 		JTextField levelField = new JTextField(8);
 		levelField.setText(level);
 		
@@ -105,32 +119,30 @@ public class Canvas {
 		levelPanel.add(levelLabel, BorderLayout.WEST);
 		levelPanel.add(levelField, BorderLayout.CENTER);
 
-		JButton submitButton = new JButton("Submit");
+		JButton submitButton = new JButton(LABELS.getString("submit"));
 		submitButton.addActionListener(e -> {
 			String selectedlevel = levelField.getText();
 			
-			if (selectedlevel.trim().equals("") || !isNumber(selectedlevel) || !isLevelCorrect(selectedlevel)){
+			if (selectedlevel.trim().equals("") || !Util.isNumber(selectedlevel) || !isLevelCorrect(selectedlevel)){
 				JOptionPane.showMessageDialog(frame,
-					    "Level cannot be empty.\n" + "Level must be a positive number such as :\n" + 
-					    Triangle.MINLEVEL + " <= Level <= " + Triangle.MAXLEVEL + "\n" 
-					    + "Value entered: " + level,
-					    "Level error",
+						new Formatter().format(LABELS.getString("levelErrorContent"), Triangle.MINLEVEL, Triangle.MAXLEVEL, level),
+					    LABELS.getString("levelErrorTitle"),
 					    JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 			
 			ArrayList<Choice> choiceList = new ArrayList<Choice>();
 			for(int x = 0; x < choicesPanel.getComponentCount(); x++){
-				JPanel row = (JPanel)choicesPanel.getComponent(x);
 				Choice choice = new Choice();
-				choice.setAction(Action.valueOf((String)((JComboBox<String>)row.getComponent(0)).getSelectedItem()));
+				JPanel row = (JPanel)choicesPanel.getComponent(x);
+				String displayedAction = (String)((JComboBox<String>)row.getComponent(0)).getSelectedItem();
+				choice.setAction(Action.valueOf(actionMap.get(displayedAction)));
 				JPanel numberPanel = (JPanel)row.getComponent(1);
 				String number = ((JTextField)numberPanel.getComponent(1)).getText();
-				if (number.trim().equals("") || !isNumber(number)){
+				if (number.trim().equals("") || !Util.isNumber(number)){
 					JOptionPane.showMessageDialog(frame,
-						    "Number cannot be empty.\n" + "Number must be positive.\n" 
-						    + "Value entered: " + number,
-						    "Number error",
+							new Formatter().format(LABELS.getString("NumberErrorContent"), number),
+						    LABELS.getString("numberErrorTitle"),
 						    JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -154,10 +166,11 @@ public class Canvas {
 		JButton plusButton = new JButton("+");
 		plusButton.addActionListener(e -> {
 			//Choice panel
-			JComboBox<String> actionsComboBox = new JComboBox<>(Action.getValues());
+			String[] actionArray = actionMap.keySet().toArray(new String[Action.values().length]);
+			JComboBox<String> actionsComboBox = new JComboBox<>(actionMap.keySet().toArray(actionArray));
 			actionsComboBox.setSelectedIndex(0);
 
-			JLabel numbersLabel = new JLabel("Numbers: ");
+			JLabel numbersLabel = new JLabel(LABELS.getString("number"));
 			JTextField numbersField = new JTextField(8);
 			numbersField.setText("3");
 
@@ -166,7 +179,7 @@ public class Canvas {
 			numbersPanel.add(numbersLabel, BorderLayout.WEST);
 			numbersPanel.add(numbersField, BorderLayout.CENTER);
 
-			JLabel colorLabel = new JLabel("Colors: ");
+			JLabel colorLabel = new JLabel(LABELS.getString("color"));
 			JComboBox<Color> colorComboBox = new JComboBox<>(COLORARRAY);
 			colorComboBox.setRenderer(CELLCOLORRENDERER);
 
@@ -219,35 +232,10 @@ public class Canvas {
 
 		frame.setVisible(true);
 	}
-
-	private static boolean isNumber(String level) {
-		return Pattern.matches("\\d+", level.trim());
-	}
-
+	
 	private static boolean isLevelCorrect(String level) {
 		int levelInt = Integer.valueOf(level);
 		return levelInt>=Triangle.MINLEVEL && levelInt<=Triangle.MAXLEVEL;
-	}
-		
-	private static Color[] createColorArray(String value) {
-		String[] stringArray = value.split(";");
-		Color[] result = new Color[stringArray.length];
-		for(int x=0; x<result.length; x++)
-			result[x] = createColor(stringArray[x]);
-		return result;
-	}
-	
-	private static Color createColor(String colorNumber){
-		String[] stringArray = colorNumber.split(",");
-		int[] intArray = stringToInt(stringArray);
-		return new Color(intArray[0], intArray[1], intArray[2]);
-	}
-
-	private static int[] stringToInt(String[] stringArray) {
-		int[] result = new int[stringArray.length];
-		for(int x=0; x<result.length; x++)
-			result[x] = Integer.valueOf(stringArray[x]);
-		return result;
 	}
 
 }
